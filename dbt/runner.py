@@ -170,11 +170,21 @@ class RunManager(object):
     def compile(self, project):
         compiler = dbt.compilation.Compiler(project)
         compiler.initialize()
-        (flat_graph, linker) = compiler.compile()
-        return (flat_graph, linker)
+        return compiler.compile()
 
     def run_from_graph(self, Selector, Runner, query):
-        flat_graph, linker = self.compile(self.project)
+        """
+        Run dbt for the query, based on the graph.
+        Selector is a type (not instance!) derived from
+            dbt.graph.selector.NodeSelector
+        Runner is a type (not instance!) derived from
+            dbt.node_runners.BaseRunner
+
+        """
+        manifest, linker = self.compile(self.project)
+
+        # temp hack for tests
+        flat_graph = manifest.to_flat_graph()
 
         selector = Selector(linker, flat_graph)
         selected_nodes = selector.select(query)

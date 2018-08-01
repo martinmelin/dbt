@@ -193,11 +193,11 @@ class BaseRunner(object):
         pass
 
     @classmethod
-    def before_run(self, project, adapter, flat_graph):
+    def before_run(self, project, adapter, manifest):
         pass
 
     @classmethod
-    def after_run(self, project, adapter, results, flat_graph):
+    def after_run(self, project, adapter, results, manifest):
         pass
 
     @classmethod
@@ -357,7 +357,8 @@ class ModelRunner(CompileRunner):
             adapter.create_schema(profile, project, schema)
 
     @classmethod
-    def before_run(cls, project, adapter, flat_graph):
+    def before_run(cls, project, adapter, manifest):
+        flat_graph = manifest.to_flat_graph()
         cls.safe_run_hooks(project, adapter, flat_graph, RunHookType.Start)
         cls.create_schemas(project, adapter, flat_graph)
 
@@ -378,7 +379,8 @@ class ModelRunner(CompileRunner):
             .format(stat_line=stat_line, execution=execution))
 
     @classmethod
-    def after_run(cls, project, adapter, results, flat_graph):
+    def after_run(cls, project, adapter, results, manifest):
+        flat_graph = manifest.to_flat_graph()
         cls.safe_run_hooks(project, adapter, flat_graph, RunHookType.End)
 
     @classmethod

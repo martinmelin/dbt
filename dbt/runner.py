@@ -96,7 +96,8 @@ class RunManager(object):
                 runners.append(node_runners[unique_id])
         return runners
 
-    def execute_nodes(self, linker, Runner, flat_graph, node_dependency_list):
+    def execute_nodes(self, linker, Runner, manifest, node_dependency_list):
+        flat_graph = manifest.to_flat_graph()
         profile = self.project.run_environment()
         adapter = get_adapter(profile)
 
@@ -183,9 +184,6 @@ class RunManager(object):
         """
         manifest, linker = self.compile(self.project)
 
-        # temp hack for tests
-        flat_graph = manifest.to_flat_graph()
-
         selector = Selector(linker, manifest)
         selected_nodes = selector.select(query)
         dep_list = selector.as_node_list(selected_nodes)
@@ -209,9 +207,9 @@ class RunManager(object):
         try:
             Runner.before_hooks(self.project, adapter, manifest)
             started = time.time()
-            Runner.before_run(self.project, adapter, flat_graph)
-            res = self.execute_nodes(linker, Runner, flat_graph, dep_list)
-            Runner.after_run(self.project, adapter, res, flat_graph)
+            Runner.before_run(self.project, adapter, manifest)
+            res = self.execute_nodes(linker, Runner, manifest, dep_list)
+            Runner.after_run(self.project, adapter, res, manifest)
             elapsed = time.time() - started
             Runner.after_hooks(self.project, adapter, res, manifest, elapsed)
 

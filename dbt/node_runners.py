@@ -189,7 +189,7 @@ class BaseRunner(object):
         return schemas
 
     @classmethod
-    def before_hooks(self, project, adapter, flat_graph):
+    def before_hooks(self, project, adapter, manifest):
         pass
 
     @classmethod
@@ -201,7 +201,7 @@ class BaseRunner(object):
         pass
 
     @classmethod
-    def after_hooks(self, project, adapter, results, flat_graph, elapsed):
+    def after_hooks(self, project, adapter, results, manifest, elapsed):
         pass
 
 
@@ -382,7 +382,7 @@ class ModelRunner(CompileRunner):
         cls.safe_run_hooks(project, adapter, flat_graph, RunHookType.End)
 
     @classmethod
-    def after_hooks(cls, project, adapter, results, flat_graph, elapsed):
+    def after_hooks(cls, project, adapter, results, manifest, elapsed):
         cls.print_results_line(results, elapsed)
 
     def describe_node(self):

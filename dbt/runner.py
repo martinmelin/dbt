@@ -69,7 +69,7 @@ class RunManager(object):
 
     def call_runner(self, data):
         runner = data['runner']
-        flat_graph = data['flat_graph']
+        manifest = data['manifest']
 
         if runner.skip:
             return runner.on_skip()
@@ -78,7 +78,7 @@ class RunManager(object):
         if not runner.is_ephemeral_model(runner.node):
             runner.before_execute()
 
-        result = runner.safe_run(flat_graph)
+        result = runner.safe_run(manifest)
 
         if not runner.is_ephemeral_model(runner.node):
             runner.after_execute(result)
@@ -97,7 +97,6 @@ class RunManager(object):
         return runners
 
     def execute_nodes(self, linker, Runner, manifest, node_dependency_list):
-        flat_graph = manifest.to_flat_graph()
         profile = self.project.run_environment()
         adapter = get_adapter(profile)
 
@@ -109,7 +108,7 @@ class RunManager(object):
         dbt.ui.printer.print_timestamped_line(concurrency_line)
         dbt.ui.printer.print_timestamped_line("")
 
-        schemas = list(Runner.get_model_schemas(flat_graph))
+        schemas = list(Runner.get_model_schemas(manifest))
         node_runners = self.get_runners(Runner, adapter, node_dependency_list)
 
         pool = ThreadPool(num_threads)
@@ -120,7 +119,7 @@ class RunManager(object):
             args_list = []
             for runner in runners:
                 args_list.append({
-                    'flat_graph': flat_graph,
+                    'manifest': manifest,
                     'runner': runner
                 })
 
@@ -130,7 +129,7 @@ class RunManager(object):
                         node_results.append(result)
 
                     node_id = result.node.get('unique_id')
-                    flat_graph['nodes'][node_id] = result.node
+                    manifest.nodes[node_id] = result.node
 
                     if result.errored:
                         for dep_node_id in self.get_dependent(linker, node_id):

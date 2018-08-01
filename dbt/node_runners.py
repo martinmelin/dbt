@@ -98,7 +98,8 @@ class BaseRunner(object):
     def is_ephemeral_model(cls, node):
         return cls.is_refable(node) and cls.is_ephemeral(node)
 
-    def safe_run(self, flat_graph):
+    def safe_run(self, manifest):
+        flat_graph = manifest.to_flat_graph()
         catchable_errors = (dbt.exceptions.CompilationException,
                             dbt.exceptions.RuntimeException)
 
@@ -180,9 +181,9 @@ class BaseRunner(object):
         self.skip = True
 
     @classmethod
-    def get_model_schemas(cls, flat_graph):
+    def get_model_schemas(cls, manifest):
         schemas = set()
-        for node in flat_graph['nodes'].values():
+        for node in manifest.nodes.values():
             if cls.is_refable(node) and not cls.is_ephemeral(node):
                 schemas.add(node['schema'])
 
@@ -281,9 +282,9 @@ class CompileRunner(BaseRunner):
         }
 
     @classmethod
-    def create_schemas(cls, project, adapter, flat_graph):
+    def create_schemas(cls, project, adapter, manifest):
         profile = project.run_environment()
-        required_schemas = cls.get_model_schemas(flat_graph)
+        required_schemas = cls.get_model_schemas(manifest)
         existing_schemas = set(adapter.get_existing_schemas(profile, project))
         for schema in (required_schemas - existing_schemas):
             adapter.create_schema(profile, project, schema)
@@ -341,9 +342,9 @@ class ModelRunner(CompileRunner):
             raise
 
     @classmethod
-    def create_schemas(cls, project, adapter, flat_graph):
+    def create_schemas(cls, project, adapter, manifest):
         profile = project.run_environment()
-        required_schemas = cls.get_model_schemas(flat_graph)
+        required_schemas = cls.get_model_schemas(manifest)
 
         # Snowflake needs to issue a "use {schema}" query, where schema
         # is the one defined in the profile. Create this schema if it
@@ -360,7 +361,7 @@ class ModelRunner(CompileRunner):
     def before_run(cls, project, adapter, manifest):
         flat_graph = manifest.to_flat_graph()
         cls.safe_run_hooks(project, adapter, flat_graph, RunHookType.Start)
-        cls.create_schemas(project, adapter, flat_graph)
+        cls.create_schemas(project, adapter, manifest)
 
     @classmethod
     def print_results_line(cls, results, execution_time):

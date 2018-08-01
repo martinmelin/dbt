@@ -186,7 +186,7 @@ class RunManager(object):
         # temp hack for tests
         flat_graph = manifest.to_flat_graph()
 
-        selector = Selector(linker, flat_graph)
+        selector = Selector(linker, manifest)
         selected_nodes = selector.select(query)
         dep_list = selector.as_node_list(selected_nodes)
 

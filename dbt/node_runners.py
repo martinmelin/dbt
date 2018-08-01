@@ -109,7 +109,7 @@ class BaseRunner(object):
         try:
             # if we fail here, we still have a compiled node to return
             # this has the benefit of showing a build path for the errant model
-            compiled_node = self.compile(flat_graph)
+            compiled_node = self.compile(manifest)
             result.node = compiled_node
 
             # for ephemeral nodes, we only want to compile, not run
@@ -221,12 +221,13 @@ class CompileRunner(BaseRunner):
     def execute(self, compiled_node, flat_graph):
         return RunModelResult(compiled_node)
 
-    def compile(self, flat_graph):
+    def compile(self, manifest):
         return self._compile_node(self.adapter, self.project, self.node,
-                                  flat_graph)
+                                  manifest)
 
     @classmethod
-    def _compile_node(cls, adapter, project, node, flat_graph):
+    def _compile_node(cls, adapter, project, node, manifest):
+        flat_graph = manifest.to_flat_graph()
         compiler = dbt.compilation.Compiler(project)
         node = compiler.compile_node(node, flat_graph)
         node = cls._inject_runtime_config(adapter, project, node)
@@ -300,7 +301,7 @@ class ModelRunner(CompileRunner):
         flat_graph = manifest.to_flat_graph()
         profile = project.run_environment()
 
-        nodes = manifest.noes.values()
+        nodes = manifest.nodes.values()
         hooks = get_nodes_by_tags(nodes, {hook_type}, NodeType.Operation)
 
         ordered_hooks = sorted(hooks, key=lambda h: h.get('index', len(hooks)))
@@ -316,7 +317,7 @@ class ModelRunner(CompileRunner):
             # Also, consider configuring psycopg2 (and other adapters?) to
             # ensure that a transaction is only created if dbt initiates it.
             adapter.clear_transaction(profile, model_name)
-            compiled = cls._compile_node(adapter, project, hook, flat_graph)
+            compiled = cls._compile_node(adapter, project, hook, manifest)
             statement = compiled['wrapped_sql']
 
             hook_index = hook.get('index', len(hooks))
@@ -507,7 +508,7 @@ class SeedRunner(ModelRunner):
         dbt.ui.printer.print_start_line(description, self.node_index,
                                         self.num_nodes)
 
-    def compile(self, flat_graph):
+    def compile(self, manifest):
         return self.node
 
     def print_result_line(self, result):

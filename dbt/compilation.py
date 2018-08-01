@@ -222,40 +222,30 @@ class Compiler(object):
         graph_path = os.path.join(self.project['target-path'], filename)
         linker.write_graph(graph_path)
 
-    def link_node(self, linker, node, flat_graph):
-        linker.add_node(node.get('unique_id'))
+    def link_node(self, linker, node, manifest):
+        linker.add_node(node.unique_id)
 
         linker.update_node_data(
-            node.get('unique_id'),
-            node)
+            node.unique_id,
+            node.to_dict())
 
-        for dependency in node.get('depends_on', {}).get('nodes'):
-            if flat_graph.get('nodes').get(dependency):
+        for dependency in node.depends_on.get('nodes'):
+            if manifest.nodes.get(dependency):
                 linker.dependency(
-                    node.get('unique_id'),
-                    (flat_graph.get('nodes')
-                               .get(dependency)
-                               .get('unique_id')))
+                    node.unique_id,
+                    (manifest.nodes.get(dependency).unique_id))
 
             else:
                 dbt.exceptions.dependency_not_found(node, dependency)
 
-    def link_graph(self, linker, flat_graph):
-        linked_graph = {
-            'nodes': {},
-            'macros': flat_graph.get('macros')
-        }
-
-        for name, node in flat_graph.get('nodes').items():
-            self.link_node(linker, node, flat_graph)
-            linked_graph['nodes'][name] = node
+    def link_graph(self, linker, manifest):
+        for node in manifest.nodes.values():
+            self.link_node(linker, node, manifest)
 
         cycle = linker.find_cycles()
 
         if cycle:
             raise RuntimeError("Found a cycle: {}".format(cycle))
-
-        return linked_graph
 
     def get_all_projects(self):
         root_project = self.project.cfg
@@ -309,7 +299,7 @@ class Compiler(object):
 
         self._check_resource_uniqueness(manifest)
 
-        linked_graph = self.link_graph(linker, flat_graph)
+        linked_graph = self.link_graph(linker, manifest)
 
         stats = defaultdict(int)
 

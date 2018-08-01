@@ -295,20 +295,18 @@ class Compiler(object):
 
         self.write_manifest_file(manifest)
 
-        flat_graph = manifest.to_flat_graph()
-
         self._check_resource_uniqueness(manifest)
 
-        linked_graph = self.link_graph(linker, manifest)
+        self.link_graph(linker, manifest)
 
         stats = defaultdict(int)
 
         for node_name, node in itertools.chain(
-                linked_graph.get('nodes').items(),
-                linked_graph.get('macros').items()):
-            stats[node.get('resource_type')] += 1
+                manifest.nodes.items(),
+                manifest.macros.items()):
+            stats[node.resource_type] += 1
 
         self.write_graph_file(linker)
         print_compile_stats(stats)
 
-        return linked_graph, linker
+        return manifest, linker

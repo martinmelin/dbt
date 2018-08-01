@@ -271,17 +271,16 @@ class Compiler(object):
 
         return all_projects
 
-    def _check_resource_uniqueness(cls, flat_graph):
-        nodes = flat_graph['nodes']
+    def _check_resource_uniqueness(cls, manifest):
         names_resources = {}
         alias_resources = {}
 
-        for resource, node in nodes.items():
-            if node.get('resource_type') not in NodeType.refable():
+        for resource, node in manifest.nodes.items():
+            if node.resource_type not in NodeType.refable():
                 continue
 
-            name = node['name']
-            alias = "{}.{}".format(node['schema'], node['alias'])
+            name = node.name
+            alias = "{}.{}".format(node.schema, node.alias)
 
             existing_node = names_resources.get(name)
             if existing_node is not None:
@@ -308,7 +307,7 @@ class Compiler(object):
 
         flat_graph = manifest.to_flat_graph()
 
-        self._check_resource_uniqueness(flat_graph)
+        self._check_resource_uniqueness(manifest)
 
         linked_graph = self.link_graph(linker, flat_graph)
 

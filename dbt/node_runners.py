@@ -296,10 +296,11 @@ class ModelRunner(CompileRunner):
         return False
 
     @classmethod
-    def run_hooks(cls, project, adapter, flat_graph, hook_type):
+    def run_hooks(cls, project, adapter, manifest, hook_type):
+        flat_graph = manifest.to_flat_graph()
         profile = project.run_environment()
 
-        nodes = flat_graph.get('nodes', {}).values()
+        nodes = manifest.noes.values()
         hooks = get_nodes_by_tags(nodes, {hook_type}, NodeType.Operation)
 
         ordered_hooks = sorted(hooks, key=lambda h: h.get('index', len(hooks)))
@@ -333,9 +334,9 @@ class ModelRunner(CompileRunner):
             adapter.release_connection(profile, model_name)
 
     @classmethod
-    def safe_run_hooks(cls, project, adapter, flat_graph, hook_type):
+    def safe_run_hooks(cls, project, adapter, manifest, hook_type):
         try:
-            cls.run_hooks(project, adapter, flat_graph, hook_type)
+            cls.run_hooks(project, adapter, manifest, hook_type)
 
         except dbt.exceptions.RuntimeException:
             logger.info("Database error while running {}".format(hook_type))
@@ -359,8 +360,7 @@ class ModelRunner(CompileRunner):
 
     @classmethod
     def before_run(cls, project, adapter, manifest):
-        flat_graph = manifest.to_flat_graph()
-        cls.safe_run_hooks(project, adapter, flat_graph, RunHookType.Start)
+        cls.safe_run_hooks(project, adapter, manifest, RunHookType.Start)
         cls.create_schemas(project, adapter, manifest)
 
     @classmethod
@@ -381,8 +381,7 @@ class ModelRunner(CompileRunner):
 
     @classmethod
     def after_run(cls, project, adapter, results, manifest):
-        flat_graph = manifest.to_flat_graph()
-        cls.safe_run_hooks(project, adapter, flat_graph, RunHookType.End)
+        cls.safe_run_hooks(project, adapter, manifest, RunHookType.End)
 
     @classmethod
     def after_hooks(cls, project, adapter, results, manifest, elapsed):

@@ -413,7 +413,7 @@ class ModelRunner(CompileRunner):
     def execute(self, model, manifest):
         flat_graph = manifest.to_flat_graph()
         context = dbt.context.runtime.generate(
-            model.to_dict(), self.project.cfg, flat_graph)
+            model.to_dict(), self.project.cfg, manifest)
 
         materialization_macro = dbt.utils.get_materialization_macro(
             flat_graph,

@@ -151,7 +151,6 @@ class Compiler(object):
         return target_path
 
     def compile_node(self, node, manifest):
-        flat_graph = manifest.to_flat_graph()
         logger.debug("Compiling {}".format(node.get('unique_id')))
 
         data = node.to_dict()
@@ -166,7 +165,7 @@ class Compiler(object):
 
         # TODO: make generate() take a real CompiledNode.
         context = dbt.context.runtime.generate(
-            compiled_node.to_dict(), self.project, flat_graph)
+            compiled_node.to_dict(), self.project, manifest)
 
         compiled_node.compiled_sql = dbt.clients.jinja.get_rendered(
             node.get('raw_sql'),

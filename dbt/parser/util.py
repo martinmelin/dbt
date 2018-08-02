@@ -4,8 +4,9 @@ import dbt.utils
 
 class ParserUtils(object):
     @classmethod
-    def resolve_ref(cls, flat_graph, target_model_name, target_model_package,
+    def resolve_ref(cls, manifest, target_model_name, target_model_package,
                     current_project, node_package):
+        flat_graph = manifest.to_flat_graph()
 
         if target_model_package is not None:
             return dbt.utils.find_refable_by_name(

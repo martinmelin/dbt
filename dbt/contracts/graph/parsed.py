@@ -336,6 +336,14 @@ class ParsedNode(APIObject):
         # patches always trigger re-validation
         self.validate()
 
+    @property
+    def build_path(self):
+        return self._contents.get('build_path')
+
+    @build_path.setter
+    def build_path(self, value):
+        self._contents['build_path'] = value
+
 
 class ParsedMacro(APIObject):
     SCHEMA = PARSED_MACRO_CONTRACT

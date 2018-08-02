@@ -193,6 +193,10 @@ class Manifest(APIObject):
             'macros': self.macros,
         }
 
+    def __getattr__(self, name):
+        raise AttributeError("'{}' object has no attribute '{}'".format(
+            type(self).__name__, name)
+        )
 
 def pick_best_node_type(data):
     """Try to pick the 'best' node type by picking the most specific one.

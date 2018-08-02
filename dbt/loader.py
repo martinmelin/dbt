@@ -1,7 +1,7 @@
 import dbt.exceptions
 
 from dbt.node_types import NodeType
-from dbt.contracts.graph.parsed import ParsedManifest
+from dbt.contracts.graph.any import Manifest
 from dbt.utils import timestring
 
 import dbt.parser
@@ -21,7 +21,7 @@ class GraphLoader(object):
 
         tests, patches = SchemaTestLoader.load_all(root_project, all_projects)
 
-        manifest = ParsedManifest(nodes=nodes, macros=macros,
+        manifest = Manifest(nodes=nodes, macros=macros,
                                   generated_at=timestring())
         manifest.add_nodes(tests)
         manifest.patch_nodes(patches)

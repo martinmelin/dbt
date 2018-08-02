@@ -306,7 +306,7 @@ class ParsedNode(APIObject):
     @property
     def depends_on_nodes(self):
         """Return the list of node IDs that this node depends on."""
-        return self._contents['depends_on']['nodes']
+        return self.depends_on['nodes']
 
     def to_dict(self):
         """Similar to 'serialize', but tacks the agate_table attribute in too.
@@ -335,6 +335,9 @@ class ParsedNode(APIObject):
         })
         # patches always trigger re-validation
         self.validate()
+
+    def get_materialization(self):
+        return self.config.get('materialized')
 
     @property
     def build_path(self):

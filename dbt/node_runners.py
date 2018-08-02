@@ -411,13 +411,11 @@ class ModelRunner(CompileRunner):
         self.print_result_line(result)
 
     def execute(self, model, manifest):
-        flat_graph = manifest.to_flat_graph()
         context = dbt.context.runtime.generate(
             model.to_dict(), self.project.cfg, manifest)
 
-        materialization_macro = dbt.utils.get_materialization_macro(
-            flat_graph,
-            dbt.utils.get_materialization(model.to_dict()),
+        materialization_macro = manifest.get_materialization_macro(
+            model.get_materialization(),
             self.adapter.type())
 
         if materialization_macro is None:

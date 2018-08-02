@@ -124,7 +124,9 @@ class Manifest(APIObject):
     def _find_by_name(self, name, package, subgraph, nodetype):
         """
 
-        Find a node by its given name in the appropraite sugraph.
+        Find a node by its given name in the appropriate sugraph. If package is
+        None, all pacakges will be searched.
+        nodetype should be a list of NodeTypes to accept.
         """
         if subgraph == 'nodes':
             search = self.nodes
@@ -141,8 +143,45 @@ class Manifest(APIObject):
             nodetype)
 
     def find_operation_by_name(self, name, package):
+        """Find a macro in the graph by its name and package name, or None for
+        any package.
+        """
         return self._find_by_name(name, package, 'macros',
                                   [NodeType.Operation])
+
+    def find_macro_by_name(self, name, package):
+        """Find a macro in the graph by its name and package name, or None for
+        any package.
+        """
+        return self._find_by_name(name, package, 'macros', [NodeType.Macro])
+
+    def find_refable_by_name(self, name, package):
+        """Find any valid target for "ref()" in the graph by its name and
+        package name, or None for any package.
+        """
+        return self._find_by_name(name, package, 'nodes', NodeType.refable())
+
+    def get_materialization_macro(self, materialization_Name,
+                                  adapter_type=None):
+        macro_name = dbt.utils.get_materialization_macro_name(
+            materialization_name=materialization_name,
+            adapter_type=adapter_type,
+            with_prefix=False)
+
+        macro = self.find_macro_by_name(
+            macro_name,
+            None)
+
+        if adapter_type not in ('default', None) and macro is None:
+            macro_name = dbt.utils.get_materialization_macro_name(
+                materialization_name=materialization_name,
+                adapter_type='default',
+                with_prefix=False)
+            macro = self.find_macro_by_name(
+                macro_name,
+                None)
+
+        return macro
 
     def add_nodes(self, new_nodes):
         """Add the given dict of new nodes to the manifest."""
